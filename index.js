@@ -1,14 +1,14 @@
 const { App } = require('@slack/bolt');
-const {createClient} = require('@supabase/supabase-js');
 const express = require('express');
 const bodyParser = require('body-parser');
+const axios = require('axios');
+const https = require('https');
+const cors = require('cors');
 
 const app = express();
 
 // Load env
 require('dotenv').config();
-
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY)
 
 function generateSlackMessage(data,prospectus_link) {
   const eventData = data[0];
@@ -39,23 +39,25 @@ function generateSlackMessage(data,prospectus_link) {
       elements: [
         {
           type: 'button',
+          action_id: 'approve_button',
           text: {
             type: 'plain_text',
             emoji: true,
             text: 'Approve'
           },
           style: 'primary',
-          value: 'click_me_123'
+          value: eventData.id
         },
         {
           type: 'button',
+          action_id: 'reject_button',
           text: {
             type: 'plain_text',
             emoji: true,
             text: 'Reject'
           },
           style: 'danger',
-          value: 'click_me_123'
+          value: eventData.id
         }
       ]
     }
@@ -67,6 +69,9 @@ function generateSlackMessage(data,prospectus_link) {
 // Middleware
 // app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(cors());
+// Middleware
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Initializes your app with your bot token and signing secret
 const slack = new App({
@@ -97,31 +102,23 @@ async function sendMessage(channel, message) {
 })();
 
 // Define your API route for handling the POST request
-app.post('/api/data', async (request, response) => {
+app.post('/alert-slack', async (request, response) => {
   console.log('Received data:', request.body);
-
-  const event_id = request.body.id;
-  const event_type = request.body.event_type; 
-  var message = null;
+  let message = [
+    {
+      type: 'context',
+      elements: [
+        {
+          type: 'plain_text',
+          text: 'New Event Approval Requested',
+          emoji: true
+    }
+  ]}];
 
   try{
-    const {data,error} = await supabase.from('events').select('id, title, slug, key, dg_project, dg_key, approval_status, start_date, end_date, total_days, user_id, contact_email, website, description, organizer_name, country, city, state, street_address, zip_code').eq('id', event_id).limit(1);
-
-    var prospectus_link = null;
-
-    try{
-      const { data: fileData, error: fileError } = await supabase.storage
-      .from("event-prospectus")
-      .getPublicUrl(`${event_id}/Prospectus`);
-      if (!fileError) {
-        prospectus_link = fileData['publicUrl'];
-      }
-      } catch(e){
-          console.log(e);
-       }
-      
-       message = generateSlackMessage(data ,prospectus_link);
-      
+  const event_data = request.body.event_data;
+  const prospectus_link = request.body.prospectus_link;
+  message = generateSlackMessage(event_data ,prospectus_link);
   } catch (error) {
     console.error('Error sending message:', error);
   }
@@ -133,6 +130,78 @@ app.post('/api/data', async (request, response) => {
 
   // Optionally, send a response back to the client
   response.send('Message sent to Slack');
+});
+
+app.post('/request', async (request, response) => {
+  try {
+    const payload = JSON.parse(request.body.payload);
+    let button_type = payload.actions[0].action_id;
+    let event_id = payload.actions[0].value;
+    let event_type = "";
+    if (button_type == 'approve_button') {
+      event_type = "approved";
+      try {
+        const res = await axios.post(process.env.EVENT_CAPTIONER_ENDPOINT, {
+          event_id: event_id,
+          event_status: 'approved'
+        }, {
+          // Set rejectUnauthorized to false if using self-signed SSL certificate
+          httpsAgent: new https.Agent({ rejectUnauthorized: false })
+        });
+        
+        console.log(res);
+      } catch (error) {
+        console.error('Error:', error.message);
+      }
+    } else if (button_type == 'reject_button') {
+      event_type = "rejected";
+      try {
+        const res = await axios.post(process.env.EVENT_CAPTIONER_ENDPOINT, {
+          event_id: event_id,
+          event_status: 'rejected'
+        }, {
+          // Set rejectUnauthorized to false if using self-signed SSL certificate
+          httpsAgent: new https.Agent({ rejectUnauthorized: false })
+        });
+        
+        console.log(res);
+      } catch (error) {
+        console.error('Error:', error.message);
+      }
+    }
+
+    chat_update = {
+      "channel": payload.channel.id,
+      "ts": payload.message.ts,
+      "text": "Event "+event_type+" by " + payload.user.name,
+      "blocks": [
+        {
+          "type": "context",
+          "elements": [
+            {
+              "type": "plain_text",
+              "text": "Event "+event_type+" by @" + payload.user.name,
+              "emoji": true
+            },
+            {
+              "type": "mrkdwn",
+              "text": "\n*Event Title:* " + payload.message.blocks[1].elements[0].text
+            }
+          ]
+        }]
+    };
+
+    await slack.client.chat.update(chat_update);
+
+    response.send({
+      "replace_original": "true",
+      "text": "Thanks for your request, we'll process it and get back to you."
+    });
+
+  } catch (error) {
+    console.error('Error parsing payload:', error);
+    response.status(400).send('Bad Request');
+  }
 });
 
 // Start the server
