@@ -30,7 +30,7 @@ function generateSlackMessage(data,prospectus_link) {
       elements: [
         {
           type: 'mrkdwn',
-          text: `**Event Details:** \n - ID: ${eventData.id} \n -  Title: ${eventData.title} \n - Slug: ${eventData.slug} \n -  DG Key: ${eventData.dg_key} \n -  Approval Status: ${eventData.approval_status} \n -  Start Date: ${eventData.start_date} \n -  End Date: ${eventData.end_date} \n -  User ID: ${eventData.user_id} \n - Contact Email: ${eventData.contact_email} \n -  Website: ${website} \n -  Description: ${eventData.description} \n -  Organizer Name: ${eventData.organizer_name} \n -  Country: ${eventData.country} \n -  City: ${eventData.city} \n -  State: ${eventData.state} \n - Street Address: ${eventData.street_address} \n -  ZIP Code: ${eventData.zip_code} \n -  Prospectus Link: ${prospectus_link}`
+          text: `**Event Details:** \n -  Title: ${eventData.title} \n - Slug: ${eventData.slug} \n -  Description: ${eventData.description} \n  -  Approval Status: ${eventData.approval_status} \n -  Start Date: ${eventData.start_date} \n -  End Date: ${eventData.end_date} \n -  Organizer Name: ${eventData.organizer_name} \n - Contact Email: ${eventData.contact_email} \n -  Website: ${website}  \n -  Prospectus Link: ${prospectus_link}`
         }
       ]
     },
