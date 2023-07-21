@@ -103,7 +103,6 @@ async function sendMessage(channel, message) {
 
 // Define your API route for handling the POST request
 app.post('/alert-slack', async (request, response) => {
-  console.log('Received data:', request.body);
   let message = [
     {
       type: 'context',
@@ -149,7 +148,6 @@ app.post('/request', async (request, response) => {
           httpsAgent: new https.Agent({ rejectUnauthorized: false })
         });
         
-        console.log(res);
       } catch (error) {
         console.error('Error:', error.message);
       }
@@ -164,7 +162,6 @@ app.post('/request', async (request, response) => {
           httpsAgent: new https.Agent({ rejectUnauthorized: false })
         });
         
-        console.log(res);
       } catch (error) {
         console.error('Error:', error.message);
       }
