@@ -39,17 +39,6 @@ function generateSlackMessage(data,prospectus_link) {
       elements: [
         {
           type: 'button',
-          action_id: 'approve_button',
-          text: {
-            type: 'plain_text',
-            emoji: true,
-            text: 'Approve'
-          },
-          style: 'primary',
-          value: eventData.id
-        },
-        {
-          type: 'button',
           action_id: 'reject_button',
           text: {
             type: 'plain_text',
@@ -57,6 +46,17 @@ function generateSlackMessage(data,prospectus_link) {
             text: 'Reject'
           },
           style: 'danger',
+          value: eventData.id
+        },
+        {
+          type: 'button',
+          action_id: 'approve_button',
+          text: {
+            type: 'plain_text',
+            emoji: true,
+            text: 'Approve'
+          },
+          style: 'primary',
           value: eventData.id
         }
       ]
