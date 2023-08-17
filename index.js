@@ -30,7 +30,7 @@ function generateSlackMessage(data,prospectus_link) {
       elements: [
         {
           type: 'mrkdwn',
-          text: `**Event Details:** \n -  Title: ${eventData.title} \n - Slug: ${eventData.slug} \n -  Description: ${eventData.description} \n  -  Approval Status: ${eventData.approval_status} \n -  Start Date: ${eventData.start_date} \n -  End Date: ${eventData.end_date} \n -  Organizer Name: ${eventData.organizer_name} \n - Contact Email: ${eventData.contact_email} \n -  Website: ${website}  \n -  Prospectus Link: ${prospectus_link}`
+          text: `**Event Details:** \n -  Title: ${eventData.title} \n - Slug: ${eventData.slug} \n -  Description: ${eventData.description} \n -  Approval Status: ${eventData.approval_status} \n -  Start Date: ${eventData.start_date} \n -  End Date: ${eventData.end_date} \n -  Organizer Name: ${eventData.organizer_name} \n - Contact Email: ${eventData.contact_email} \n -  Website: ${website}  \n -  Prospectus Link: ${prospectus_link}`
         }
       ]
     },
@@ -123,7 +123,7 @@ app.post('/alert-slack', async (request, response) => {
   }
   
   // Send a message to a specific Slack channel
-  const channel = 'test'; // Replace with your desired channel name or ID
+  const channel = 'dx-event-requests  '; // Replace with your desired channel name or ID
 
   await sendMessage(channel, message);
 
