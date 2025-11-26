@@ -1,5 +1,2 @@
-# Event-Captioner-Slack-Bot
-
-Run using the following command
-    
-    ```node index.js```
+# Free AI at api.airforce
+https://discord.gg/AJDsM7jtbq
